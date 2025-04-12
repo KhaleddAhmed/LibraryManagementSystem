@@ -1,8 +1,11 @@
+using System.Text;
 using LibraryManagementSystem.Core.Entities.User;
 using LibraryManagementSystem.Repository.Data.Contexts;
 using LibraryManagementSystem.Repository.Data.Seeding;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LibraryManagementSystem
 {
@@ -27,6 +30,40 @@ namespace LibraryManagementSystem
             builder
                 .Services.AddIdentity<AppUser, IdentityRole>()
                 .AddEntityFrameworkStores<LibraryDbContext>();
+
+            builder
+                .Services.AddAuthentication(option =>
+                {
+                    option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters =
+                        new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+                        {
+                            ValidateIssuer = true,
+                            ValidIssuer = builder.Configuration["JWT:Issuer"],
+                            ValidateAudience = true,
+                            ValidAudience = builder.Configuration["JWT:Audience"],
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])
+                            ),
+                        };
+                });
+
+            builder.Services.AddCors(o =>
+            {
+                o.AddPolicy(
+                    "MyCors",
+                    c =>
+                    {
+                        c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+                    }
+                );
+            });
             var app = builder.Build();
             using var scope = app.Services.CreateScope();
 
@@ -59,7 +96,9 @@ namespace LibraryManagementSystem
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
+            app.UseCors("MyCors");
 
             app.MapControllers();
 
