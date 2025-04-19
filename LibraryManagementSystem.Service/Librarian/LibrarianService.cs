@@ -57,6 +57,7 @@ namespace LibraryManagementSystem.Service.Librarian
             }
 
             var mappedUser = _mapper.Map<AppUser>(createLibrarianDto);
+            mappedUser.UserName = mappedUser.Email.Split('@')[0];
 
             var result = await _userManager.CreateAsync(mappedUser, createLibrarianDto.Password);
 
@@ -68,6 +69,8 @@ namespace LibraryManagementSystem.Service.Librarian
 
                 return genericResponse;
             }
+
+            await _userManager.AddToRoleAsync(mappedUser, "Librarian");
 
             genericResponse.StatusCode = StatusCodes.Status201Created;
             genericResponse.Message = "Success to Create Librarian";
@@ -143,16 +146,70 @@ namespace LibraryManagementSystem.Service.Librarian
             return genericResponse;
         }
 
-        public Task<GenericResponse<GetLibrarianDto>> GetLibrarianAsync(string librarianId)
+        public async Task<GenericResponse<GetLibrarianDto>> GetLibrarianAsync(string librarianId)
         {
-            throw new NotImplementedException();
+            var genericResponse = new GenericResponse<GetLibrarianDto>();
+
+            var librarian = await _userManager.FindByIdAsync(librarianId);
+            if (librarian is null)
+            {
+                genericResponse.StatusCode = StatusCodes.Status400BadRequest;
+                genericResponse.Message = "Failed to Get Libririan";
+
+                return genericResponse;
+            }
+
+            var mappedLibrarian = _mapper.Map<GetLibrarianDto>(librarian);
+
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "Sucess to retreive Librarian";
+            genericResponse.Data = mappedLibrarian;
+
+            return genericResponse;
         }
 
-        public Task<GenericResponse<bool>> UpdateLibrarianAsync(
+        public async Task<GenericResponse<bool>> UpdateLibrarianAsync(
             UpdateLibrarianDto updateLibrarianDto
         )
         {
-            throw new NotImplementedException();
+            var genericResponse = new GenericResponse<bool>();
+            if (updateLibrarianDto is null)
+            {
+                genericResponse.StatusCode = StatusCodes.Status400BadRequest;
+                genericResponse.Message = "Invalid Data";
+
+                return genericResponse;
+            }
+
+            var librarian = await _userManager.FindByIdAsync(updateLibrarianDto.Id);
+
+            if (librarian is null)
+            {
+                genericResponse.StatusCode = (int)StatusCodes.Status400BadRequest;
+                genericResponse.Message = "Invalid Librarian Id to Update";
+
+                return genericResponse;
+            }
+
+            _mapper.Map(updateLibrarianDto, librarian);
+            _unitOfWork.Repository<AppUser, string>().Update(librarian);
+            var resultOfUpdate = await _unitOfWork.CompleteAsync();
+
+            if (resultOfUpdate > 0)
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "Sucess to Update Librarian";
+
+                genericResponse.Data = true;
+
+                return genericResponse;
+            }
+
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "Failed to Update Librarian";
+            genericResponse.Data = false;
+
+            return genericResponse;
         }
     }
 }

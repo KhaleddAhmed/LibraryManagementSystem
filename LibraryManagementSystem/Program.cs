@@ -6,6 +6,7 @@ using LibraryManagementSystem.Core.Service.Contract;
 using LibraryManagementSystem.Repository;
 using LibraryManagementSystem.Repository.Data.Contexts;
 using LibraryManagementSystem.Repository.Data.Seeding;
+using LibraryManagementSystem.Service.Librarian;
 using LibraryManagementSystem.Service.Token;
 using LibraryManagementSystem.Service.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -40,6 +41,7 @@ namespace LibraryManagementSystem
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddAutoMapper(typeof(MappingProfile));
+            builder.Services.AddScoped<ILibrarianService, LibrarianService>();
             builder
                 .Services.AddAuthentication(option =>
                 {
