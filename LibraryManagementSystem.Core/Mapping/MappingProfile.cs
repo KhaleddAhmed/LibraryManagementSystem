@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using LibraryManagementSystem.Core.DTOs.Category;
 using LibraryManagementSystem.Core.DTOs.Librarian;
 using LibraryManagementSystem.Core.DTOs.User;
+using LibraryManagementSystem.Core.Entities.Library;
 using LibraryManagementSystem.Core.Entities.User;
 
 namespace LibraryManagementSystem.Core.Mapping
@@ -16,6 +18,7 @@ namespace LibraryManagementSystem.Core.Mapping
         {
             MapUser();
             MapLibrarian();
+            MapCategory();
         }
 
         private void MapUser()
@@ -29,6 +32,14 @@ namespace LibraryManagementSystem.Core.Mapping
             CreateMap<UpdateLibrarianDto, AppUser>();
             CreateMap<AppUser, GetAllLibrarianDto>();
             CreateMap<AppUser, GetLibrarianDto>();
+        }
+
+        private void MapCategory()
+        {
+            CreateMap<CreateCategoryDto, Category>();
+            CreateMap<UpdateCategoryDto, Category>();
+            CreateMap<Category, GetAllCategoriesDto>();
+            CreateMap<Category, GetCategoryDto>();
         }
     }
 }
