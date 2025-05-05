@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagementSystem.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Librarian")]
     public class CategoryController : BaseApiController
     {
         private readonly ICategoryService _categoryService;

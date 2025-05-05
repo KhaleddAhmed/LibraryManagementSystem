@@ -6,6 +6,7 @@ using LibraryManagementSystem.Core.Service.Contract;
 using LibraryManagementSystem.Repository;
 using LibraryManagementSystem.Repository.Data.Contexts;
 using LibraryManagementSystem.Repository.Data.Seeding;
+using LibraryManagementSystem.Service.book;
 using LibraryManagementSystem.Service.category;
 using LibraryManagementSystem.Service.Librarian;
 using LibraryManagementSystem.Service.Token;
@@ -44,6 +45,7 @@ namespace LibraryManagementSystem
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddScoped<ILibrarianService, LibrarianService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IBookService, BookService>();
             builder
                 .Services.AddAuthentication(option =>
                 {
