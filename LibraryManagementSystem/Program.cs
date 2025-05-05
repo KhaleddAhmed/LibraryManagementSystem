@@ -30,6 +30,7 @@ namespace LibraryManagementSystem
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            #region Database Config
             builder.Services.AddDbContext<LibraryDbContext>(o =>
             {
                 o.UseSqlServer(
@@ -39,6 +40,9 @@ namespace LibraryManagementSystem
             builder
                 .Services.AddIdentity<AppUser, IdentityRole>()
                 .AddEntityFrameworkStores<LibraryDbContext>();
+            #endregion
+
+            #region Injection System Services
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -46,6 +50,9 @@ namespace LibraryManagementSystem
             builder.Services.AddScoped<ILibrarianService, LibrarianService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IBookService, BookService>();
+            #endregion
+
+            #region Injection security and Cors Policy
             builder
                 .Services.AddAuthentication(option =>
                 {
@@ -79,7 +86,11 @@ namespace LibraryManagementSystem
                     }
                 );
             });
+            #endregion
+
             var app = builder.Build();
+
+            #region AutoUpdate-Seed
             using var scope = app.Services.CreateScope();
 
             var services = scope.ServiceProvider;
@@ -101,8 +112,10 @@ namespace LibraryManagementSystem
                 var logger = loggerFactory.CreateLogger<Program>();
                 logger.LogError(ex, "An Error Occured During Apply The Migration");
             }
+            #endregion
 
             // Configure the HTTP request pipeline.
+            #region Middlewares
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -118,6 +131,7 @@ namespace LibraryManagementSystem
             app.MapControllers();
 
             app.Run();
+            #endregion
         }
     }
 }
