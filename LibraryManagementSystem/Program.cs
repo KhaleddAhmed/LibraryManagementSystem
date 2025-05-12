@@ -6,6 +6,7 @@ using LibraryManagementSystem.Core.Service.Contract;
 using LibraryManagementSystem.Repository;
 using LibraryManagementSystem.Repository.Data.Contexts;
 using LibraryManagementSystem.Repository.Data.Seeding;
+using LibraryManagementSystem.Service.Admin;
 using LibraryManagementSystem.Service.book;
 using LibraryManagementSystem.Service.category;
 using LibraryManagementSystem.Service.Librarian;
@@ -50,6 +51,7 @@ namespace LibraryManagementSystem
             builder.Services.AddScoped<ILibrarianService, LibrarianService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
             builder.Services.AddScoped<IBookService, BookService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
             #endregion
 
             #region Injection security and Cors Policy

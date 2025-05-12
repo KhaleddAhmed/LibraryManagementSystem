@@ -110,7 +110,10 @@ namespace LibraryManagementSystem.Service.User
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(mappedUser, "User");
+                if (registerDto.IsLibrarian == true)
+                    await _userManager.AddToRoleAsync(mappedUser, "Librarian");
+                else
+                    await _userManager.AddToRoleAsync(mappedUser, "User");
             }
 
             if (!result.Succeeded)

@@ -10,8 +10,8 @@ namespace LibraryManagementSystem.Core.Service.Contract
 {
     public interface ICategoryService
     {
-        Task<GenericResponse<bool>> CreateCategoryAsync(CreateCategoryDto dto);
-        Task<GenericResponse<bool>> UpdateCategoryAsync(UpdateCategoryDto dto);
+        Task<GenericResponse<bool>> CreateCategoryAsync(CreateCategoryDto dto, string userName);
+        Task<GenericResponse<bool>> UpdateCategoryAsync(UpdateCategoryDto dto, string userName);
         Task<GenericResponse<bool>> DeleteCategoryAsync(int categoryId);
 
         Task<GenericResponse<GetCategoryDto>> GetCategoryAsync(int categoryId);

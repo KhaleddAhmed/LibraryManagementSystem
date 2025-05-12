@@ -20,6 +20,7 @@ namespace LibraryManagementSystem.Core.Mapping
             MapUser();
             MapLibrarian();
             MapCategory();
+            MapBook();
         }
 
         private void MapUser()

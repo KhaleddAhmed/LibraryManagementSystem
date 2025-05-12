@@ -1,4 +1,5 @@
-﻿using LibraryManagementSystem.Core.DTOs.Category;
+﻿using System.Security.Claims;
+using LibraryManagementSystem.Core.DTOs.Category;
 using LibraryManagementSystem.Core.Service.Contract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagementSystem.Controllers
 {
-    [Authorize(Roles = "Admin,Librarian")]
     public class CategoryController : BaseApiController
     {
         private readonly ICategoryService _categoryService;
@@ -16,20 +16,26 @@ namespace LibraryManagementSystem.Controllers
             _categoryService = categoryService;
         }
 
+        [Authorize(Roles = "Admin,Librarian")]
         [HttpPost("CreateCategory")]
         public async Task<ActionResult> Create(CreateCategoryDto createCategoryDto)
         {
-            var result = await _categoryService.CreateCategoryAsync(createCategoryDto);
+            var userName = User.FindFirstValue(ClaimTypes.GivenName);
+            var result = await _categoryService.CreateCategoryAsync(createCategoryDto, userName);
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin,Librarian")]
         [HttpPut("UpdateCategory")]
         public async Task<ActionResult> Update(UpdateCategoryDto updateCategoryDto)
         {
-            var result = await _categoryService.UpdateCategoryAsync(updateCategoryDto);
+            var userName = User.FindFirstValue(ClaimTypes.GivenName);
+
+            var result = await _categoryService.UpdateCategoryAsync(updateCategoryDto, userName);
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin,Librarian")]
         [HttpDelete("DeleteCategory")]
         public async Task<ActionResult> Delete(int id)
         {

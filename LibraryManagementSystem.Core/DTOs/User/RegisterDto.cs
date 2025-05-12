@@ -32,5 +32,7 @@ namespace LibraryManagementSystem.Core.DTOs.User
         [Required(ErrorMessage = "Phone is Required")]
         [Phone]
         public string PhoneNumber { get; set; }
+
+        public bool IsLibrarian { get; set; }
     }
 }

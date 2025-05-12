@@ -10,9 +10,9 @@ namespace LibraryManagementSystem.Core.Service.Contract
 {
     public interface IBookService
     {
-        Task<GenericResponse<bool>> CreateBookAsync(CreateBookDto createBookDto);
+        Task<GenericResponse<bool>> CreateBookAsync(CreateBookDto createBookDto, string userName);
         Task<GenericResponse<bool>> DeleteBookAsync(int id);
-        Task<GenericResponse<bool>> UpdateBookAsync(UpdateBookDto updateBookDto);
+        Task<GenericResponse<bool>> UpdateBookAsync(UpdateBookDto updateBookDto, string userName);
         Task<GenericResponse<List<GetAllBooksDto>>> GetAllBooksAsync(int? categoryId);
         Task<GenericResponse<GetBookDto>> GetBookAsync(int id);
     }

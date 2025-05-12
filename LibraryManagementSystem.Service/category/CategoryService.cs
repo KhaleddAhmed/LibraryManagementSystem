@@ -10,6 +10,7 @@ using LibraryManagementSystem.Core.Entities.Library;
 using LibraryManagementSystem.Core.Responses;
 using LibraryManagementSystem.Core.Service.Contract;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagementSystem.Service.category
 {
@@ -24,7 +25,10 @@ namespace LibraryManagementSystem.Service.category
             _mapper = mapper;
         }
 
-        public async Task<GenericResponse<bool>> CreateCategoryAsync(CreateCategoryDto dto)
+        public async Task<GenericResponse<bool>> CreateCategoryAsync(
+            CreateCategoryDto dto,
+            string userName
+        )
         {
             var genericResponse = new GenericResponse<bool>();
             if (dto is null)
@@ -37,7 +41,8 @@ namespace LibraryManagementSystem.Service.category
 
             var categoryNameExist = await _unitOfWork
                 .Repository<Category, int>()
-                .Get(C => C.Name == dto.Name);
+                .Get(C => C.Name == dto.Name)
+                .Result.FirstOrDefaultAsync();
 
             if (categoryNameExist is not null)
             {
@@ -48,6 +53,7 @@ namespace LibraryManagementSystem.Service.category
             }
 
             var mappedCategory = _mapper.Map<Category>(dto);
+            mappedCategory.CreatedBy = userName;
             await _unitOfWork.Repository<Category, int>().AddAsync(mappedCategory);
             var result = await _unitOfWork.CompleteAsync();
 
@@ -139,7 +145,10 @@ namespace LibraryManagementSystem.Service.category
             return genericResponse;
         }
 
-        public async Task<GenericResponse<bool>> UpdateCategoryAsync(UpdateCategoryDto dto)
+        public async Task<GenericResponse<bool>> UpdateCategoryAsync(
+            UpdateCategoryDto dto,
+            string userName
+        )
         {
             var genericResponse = new GenericResponse<bool>();
             var category = await _unitOfWork.Repository<Category, int>().GetAsync(dto.Id);
@@ -152,6 +161,8 @@ namespace LibraryManagementSystem.Service.category
             }
 
             _mapper.Map(dto, category);
+            category.ModifiedAt = DateTime.Now;
+            category.ModifiedBy = userName;
             _unitOfWork.Repository<Category, int>().Update(category);
             var result = await _unitOfWork.CompleteAsync();
 

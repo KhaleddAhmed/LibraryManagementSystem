@@ -1,4 +1,5 @@
-﻿using LibraryManagementSystem.Core.DTOs.Book;
+﻿using System.Security.Claims;
+using LibraryManagementSystem.Core.DTOs.Book;
 using LibraryManagementSystem.Core.Service.Contract;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LibraryManagementSystem.Controllers
 {
-    [Authorize(Roles = "Admin,Librarian")]
     public class BookController : BaseApiController
     {
         private readonly IBookService _bookService;
@@ -16,20 +16,26 @@ namespace LibraryManagementSystem.Controllers
             _bookService = bookService;
         }
 
+        [Authorize(Roles = "Admin,Librarian")]
         [HttpPost("CreateBook")]
         public async Task<ActionResult> CreateBook(CreateBookDto createBookDto)
         {
-            var result = await _bookService.CreateBookAsync(createBookDto);
+            var userName = User.FindFirstValue(ClaimTypes.GivenName);
+            var result = await _bookService.CreateBookAsync(createBookDto, userName);
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin,Librarian")]
         [HttpPut("UpdateBook")]
         public async Task<ActionResult> Update(UpdateBookDto updateBookDto)
         {
-            var result = await _bookService.UpdateBookAsync(updateBookDto);
+            var userName = User.FindFirstValue(ClaimTypes.GivenName);
+
+            var result = await _bookService.UpdateBookAsync(updateBookDto, userName);
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin,Librarian")]
         [HttpDelete("DeleteBook")]
         public async Task<ActionResult> Delete(int bookId)
         {

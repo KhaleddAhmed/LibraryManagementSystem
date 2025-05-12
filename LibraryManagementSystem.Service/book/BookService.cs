@@ -25,7 +25,10 @@ namespace LibraryManagementSystem.Service.book
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<GenericResponse<bool>> CreateBookAsync(CreateBookDto createBookDto)
+        public async Task<GenericResponse<bool>> CreateBookAsync(
+            CreateBookDto createBookDto,
+            string userName
+        )
         {
             var genericResponse = new GenericResponse<bool>();
             if (createBookDto is null)
@@ -49,6 +52,7 @@ namespace LibraryManagementSystem.Service.book
             }
 
             var mappedBook = _mapper.Map<Book>(createBookDto);
+            mappedBook.CreatedBy = userName;
 
             await _unitOfWork.Repository<Book, int>().AddAsync(mappedBook);
             var result = await _unitOfWork.CompleteAsync();
@@ -120,7 +124,10 @@ namespace LibraryManagementSystem.Service.book
             return genericResponse;
         }
 
-        public async Task<GenericResponse<bool>> UpdateBookAsync(UpdateBookDto updateBookDto)
+        public async Task<GenericResponse<bool>> UpdateBookAsync(
+            UpdateBookDto updateBookDto,
+            string userName
+        )
         {
             var genericResponse = new GenericResponse<bool>();
             if (updateBookDto is null)
@@ -145,6 +152,8 @@ namespace LibraryManagementSystem.Service.book
             }
 
             _mapper.Map(updateBookDto, book);
+            book.ModifiedAt = DateTime.Now;
+            book.ModifiedBy = userName;
             _unitOfWork.Repository<Book, int>().Update(book);
             var res = await _unitOfWork.CompleteAsync();
             if (res > 0)
