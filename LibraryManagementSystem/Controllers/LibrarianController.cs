@@ -50,5 +50,12 @@ namespace LibraryManagementSystem.Controllers
             var result = await _librarianService.UpdateLibrarianAsync(updateLibrarianDto);
             return Ok(result);
         }
+
+        [HttpGet("GetAllRegisteredUsers")]
+        public async Task<ActionResult> GetAllUsers()
+        {
+            var result = await _librarianService.GetAllUserAsync();
+            return Ok(result);
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LibraryManagementSystem.Core.DTOs.Librarian;
+using LibraryManagementSystem.Core.DTOs.User;
 using LibraryManagementSystem.Core.DTOs.UserBorrowings;
 using LibraryManagementSystem.Core.Responses;
 
@@ -32,5 +33,7 @@ namespace LibraryManagementSystem.Core.Service.Contract
         Task<GenericResponse<List<GetAllReturnedBooksDto>>> GetAllReturnedBooksAsync();
 
         Task<GenericResponse<bool>> ApproveReturnedBook(string borrowerId, string bookTitle);
+
+        Task<GenericResponse<List<GetAllUserDto>>> GetAllUserAsync();
     }
 }

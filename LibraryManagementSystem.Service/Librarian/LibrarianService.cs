@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using LibraryManagementSystem.Core;
 using LibraryManagementSystem.Core.DTOs.Librarian;
+using LibraryManagementSystem.Core.DTOs.User;
 using LibraryManagementSystem.Core.DTOs.UserBorrowings;
 using LibraryManagementSystem.Core.Entities.Library;
 using LibraryManagementSystem.Core.Entities.User;
@@ -434,6 +435,35 @@ namespace LibraryManagementSystem.Service.Librarian
             genericResponse.StatusCode = StatusCodes.Status200OK;
             genericResponse.Message = "You have to pay additional fees";
             genericResponse.Data = false;
+            return genericResponse;
+        }
+
+        public async Task<GenericResponse<List<GetAllUserDto>>> GetAllUserAsync()
+        {
+            var genericResponse = new GenericResponse<List<GetAllUserDto>>();
+
+            var users = await _unitOfWork.Repository<AppUser, string>().GetAllAsync();
+            if (!users.Any())
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "No Users to show";
+                return genericResponse;
+            }
+
+            var listResult = new List<GetAllUserDto>();
+            foreach (var user in users)
+            {
+                if (await _userManager.IsInRoleAsync(user, "User"))
+                {
+                    var result = new GetAllUserDto() { Name = user.FirstName, Email = user.Email };
+                    listResult.Add(result);
+                }
+            }
+
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "Sucess to return all users";
+            genericResponse.Data = listResult;
+
             return genericResponse;
         }
     }
