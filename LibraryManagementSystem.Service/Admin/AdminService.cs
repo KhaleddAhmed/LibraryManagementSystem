@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LibraryManagementSystem.Core;
+using LibraryManagementSystem.Core.DTOs.UserBorrowings;
+using LibraryManagementSystem.Core.Entities.Library;
 using LibraryManagementSystem.Core.Entities.User;
 using LibraryManagementSystem.Core.Responses;
 using LibraryManagementSystem.Core.Service.Contract;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace LibraryManagementSystem.Service.Admin
 {
@@ -47,6 +50,46 @@ namespace LibraryManagementSystem.Service.Admin
 
             genericResponse.StatusCode = StatusCodes.Status200OK;
             genericResponse.Message = "Failed to accept user";
+            return genericResponse;
+        }
+
+        public async Task<GenericResponse<List<GetBorrowingsAdminDto>>> GetAllBorrowingsAdminAsync()
+        {
+            var genericResponse = new GenericResponse<List<GetBorrowingsAdminDto>>();
+            var userBorrowings = await _unitOfWork
+                .Repository<UserBorrowing, int>()
+                .GetAllAsyncAsQueryable()
+                .Result.Include(UB => UB.Book)
+                .Include(Ub => Ub.AppUser)
+                .ToListAsync();
+            if (!userBorrowings.Any())
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "No Borrowings to show";
+
+                return genericResponse;
+            }
+
+            var listOfGetBorrowings = new List<GetBorrowingsAdminDto>();
+
+            foreach (var item in userBorrowings)
+            {
+                var getBorrowing = new GetBorrowingsAdminDto()
+                {
+                    BookTitle = item.Book.Title,
+                    Borrower = item.AppUser.FirstName,
+                    BorrowDate = item.BorrowDate,
+                    DueDate = item.DueDate,
+                    BorrowStatus = item.BorrowStatus,
+                };
+
+                listOfGetBorrowings.Add(getBorrowing);
+            }
+
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "Success to return all admin Borrowings";
+            genericResponse.Data = listOfGetBorrowings;
+
             return genericResponse;
         }
 

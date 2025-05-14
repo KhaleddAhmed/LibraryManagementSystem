@@ -6,9 +6,12 @@ using System.Threading.Tasks;
 using AutoMapper;
 using LibraryManagementSystem.Core;
 using LibraryManagementSystem.Core.DTOs.Librarian;
+using LibraryManagementSystem.Core.DTOs.UserBorrowings;
+using LibraryManagementSystem.Core.Entities.Library;
 using LibraryManagementSystem.Core.Entities.User;
 using LibraryManagementSystem.Core.Responses;
 using LibraryManagementSystem.Core.Service.Contract;
+using LibraryManagementSystem.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +36,103 @@ namespace LibraryManagementSystem.Service.Librarian
             _userManager = userManager;
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+        }
+
+        public async Task<GenericResponse<bool>> ApproveRequestedBorrowFromMemberAsync(
+            string memberId,
+            string BookTitle
+        )
+        {
+            var genericResponse = new GenericResponse<bool>();
+
+            var userBorrowing = await _unitOfWork
+                .Repository<UserBorrowing, int>()
+                .Get(Ub => Ub.AppUserId == memberId)
+                .Result.Include(Ub => Ub.Book)
+                .Where(Ub => Ub.Book.Title == BookTitle)
+                .FirstOrDefaultAsync();
+
+            if (userBorrowing is null)
+            {
+                genericResponse.StatusCode = StatusCodes.Status400BadRequest;
+                genericResponse.Message = "Invalid User Borrowing to Approve";
+
+                return genericResponse;
+            }
+
+            if (userBorrowing.Book.IsAvaliable == false)
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "Book is not avaliable to Approve Borrow";
+
+                return genericResponse;
+            }
+
+            userBorrowing.IsBorrowApproved = true;
+            userBorrowing.Book.IsAvaliable = false;
+            userBorrowing.BorrowStatus = BorrowStatus.Borrowed;
+            userBorrowing.IsStillBorrowed = true;
+
+            _unitOfWork.Repository<UserBorrowing, int>().Update(userBorrowing);
+            var result = await _unitOfWork.CompleteAsync();
+            if (result > 0)
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "Success to approve member Borrow request";
+                genericResponse.Data = true;
+                return genericResponse;
+            }
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "Success to Approve member Borrow request";
+            genericResponse.Data = false;
+            return genericResponse;
+        }
+
+        public async Task<GenericResponse<bool>> RejectRequestedBorrowFromMemberAsync(
+            string memberId,
+            string BookTitle
+        )
+        {
+            var genericResponse = new GenericResponse<bool>();
+
+            var userBorrowing = await _unitOfWork
+                .Repository<UserBorrowing, int>()
+                .Get(Ub => Ub.AppUserId == memberId)
+                .Result.Include(Ub => Ub.Book)
+                .Where(Ub => Ub.Book.Title == BookTitle)
+                .FirstOrDefaultAsync();
+
+            if (userBorrowing is null)
+            {
+                genericResponse.StatusCode = StatusCodes.Status400BadRequest;
+                genericResponse.Message = "Invalid User Borrowing to Reject";
+
+                return genericResponse;
+            }
+
+            if (userBorrowing.Book.IsAvaliable == false)
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "Book is not avaliable to Approve Borrow";
+
+                return genericResponse;
+            }
+
+            userBorrowing.IsBorrowApproved = false;
+
+            _unitOfWork.Repository<UserBorrowing, int>().Update(userBorrowing);
+            var result = await _unitOfWork.CompleteAsync();
+            if (result > 0)
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "Success to reject member Borrow request";
+                genericResponse.Data = true;
+                return genericResponse;
+            }
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "Success to Reject member Borrow request";
+            genericResponse.Data = false;
+            return genericResponse;
         }
 
         public async Task<GenericResponse<bool>> CreateLibrarianAsync(
@@ -107,6 +207,48 @@ namespace LibraryManagementSystem.Service.Librarian
             genericResponse.Message = "Success to delete Librarian";
 
             genericResponse.Data = true;
+
+            return genericResponse;
+        }
+
+        public async Task<
+            GenericResponse<List<GetAllBorrowRequestsFromMembersDto>>
+        > GetAllBorrowRequestsFromMembersAsync()
+        {
+            var genericResponse = new GenericResponse<List<GetAllBorrowRequestsFromMembersDto>>();
+            var userBorrowings = await _unitOfWork
+                .Repository<UserBorrowing, int>()
+                .GetAllAsyncAsQueryable()
+                .Result.Include(Ub => Ub.AppUser)
+                .Include(Ub => Ub.Book)
+                .ThenInclude(Ub => Ub.Category)
+                .ToListAsync();
+
+            if (!userBorrowings.Any())
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "No Requested Borrowings to show";
+
+                return genericResponse;
+            }
+
+            var listResult = new List<GetAllBorrowRequestsFromMembersDto>();
+            foreach (var borrow in userBorrowings)
+            {
+                var result = new GetAllBorrowRequestsFromMembersDto()
+                {
+                    BorrowerId = borrow.AppUserId,
+                    NameBook = borrow.Book.Title,
+                    NameMember = borrow.AppUser.FirstName,
+                    Category = borrow.Book.Category.Name,
+                };
+
+                listResult.Add(result);
+            }
+
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "Success to return all user Borrow requests";
+            genericResponse.Data = listResult;
 
             return genericResponse;
         }
@@ -209,6 +351,89 @@ namespace LibraryManagementSystem.Service.Librarian
             genericResponse.Message = "Failed to Update Librarian";
             genericResponse.Data = false;
 
+            return genericResponse;
+        }
+
+        public async Task<GenericResponse<List<GetAllReturnedBooksDto>>> GetAllReturnedBooksAsync()
+        {
+            var genericResponse = new GenericResponse<List<GetAllReturnedBooksDto>>();
+            var userBorrowings = await _unitOfWork
+                .Repository<UserBorrowing, int>()
+                .GetAllAsyncAsQueryable()
+                .Result.Include(Ub => Ub.AppUser)
+                .Include(Ub => Ub.Book)
+                .Where(Ub => Ub.UserWantsToReturn == true)
+                .ToListAsync();
+
+            if (!userBorrowings.Any())
+            {
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "No User Retrued Books Requests";
+
+                return genericResponse;
+            }
+
+            var listResult = new List<GetAllReturnedBooksDto>();
+            foreach (var item in userBorrowings)
+            {
+                var result = new GetAllReturnedBooksDto()
+                {
+                    BookTitle = item.Book.Title,
+                    BorrowDate = item.BorrowDate,
+                    Borrower = item.AppUser.FirstName,
+                    BorrowerId = item.AppUserId,
+                };
+
+                listResult.Add(result);
+            }
+
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "Success to retrieve All Returned book requets";
+            genericResponse.Data = listResult;
+            return genericResponse;
+        }
+
+        public async Task<GenericResponse<bool>> ApproveReturnedBook(
+            string borrowerId,
+            string bookTitle
+        )
+        {
+            var genericResponse = new GenericResponse<bool>();
+
+            var userBorrowing = await _unitOfWork
+                .Repository<UserBorrowing, int>()
+                .Get(Ub => Ub.AppUserId == borrowerId)
+                .Result.Include(Ub => Ub.Book)
+                .Where(Ub => Ub.Book.Title == bookTitle)
+                .FirstOrDefaultAsync();
+
+            if (userBorrowing.ReturnedDate.Value.CompareTo(userBorrowing.DueDate) <= 0)
+            {
+                userBorrowing.IsReturnConfirmed = true;
+                userBorrowing.Book.IsAvaliable = true;
+                userBorrowing.BorrowStatus = BorrowStatus.Returned;
+                userBorrowing.IsStillBorrowed = false;
+
+                _unitOfWork.Repository<UserBorrowing, int>().Update(userBorrowing);
+                var result = await _unitOfWork.CompleteAsync();
+                if (result > 0)
+                {
+                    genericResponse.StatusCode = StatusCodes.Status200OK;
+                    genericResponse.Message = "Success to approve return Book";
+                    genericResponse.Data = true;
+
+                    return genericResponse;
+                }
+                genericResponse.StatusCode = StatusCodes.Status200OK;
+                genericResponse.Message = "Failed to approve return Book";
+                genericResponse.Data = false;
+
+                return genericResponse;
+            }
+
+            genericResponse.StatusCode = StatusCodes.Status200OK;
+            genericResponse.Message = "You have to pay additional fees";
+            genericResponse.Data = false;
             return genericResponse;
         }
     }

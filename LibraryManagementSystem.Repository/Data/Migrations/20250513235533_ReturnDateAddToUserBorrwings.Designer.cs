@@ -4,6 +4,7 @@ using LibraryManagementSystem.Repository.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibraryManagementSystem.Repository.Data.Migrations
 {
     [DbContext(typeof(LibraryDbContext))]
-    partial class LibraryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250513235533_ReturnDateAddToUserBorrwings")]
+    partial class ReturnDateAddToUserBorrwings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -144,17 +147,11 @@ namespace LibraryManagementSystem.Repository.Data.Migrations
                     b.Property<bool>("IsBorrowApproved")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsReturnConfirmed")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsStillBorrowed")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("ReturnedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("UserWantsToReturn")
-                        .HasColumnType("bit");
 
                     b.HasKey("BookId", "AppUserId", "RequestForBorrowDate");
 

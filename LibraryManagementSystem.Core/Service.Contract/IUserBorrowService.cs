@@ -8,10 +8,9 @@ using LibraryManagementSystem.Core.Responses;
 
 namespace LibraryManagementSystem.Core.Service.Contract
 {
-    public interface IAdminService
+    public interface IUserBorrowService
     {
-        Task<GenericResponse<bool>> AcceptUserAsync(string userId);
-        Task<GenericResponse<bool>> RejectUserAsync(string userId);
-        Task<GenericResponse<List<GetBorrowingsAdminDto>>> GetAllBorrowingsAdminAsync();
+        Task<GenericResponse<bool>> CreateBorrowAsync(CreateBorrowDto createBorrowDto);
+        Task<GenericResponse<List<GetAllUserBorrowing>>> GetAllUserBorrowingAsync(string userId);
     }
 }

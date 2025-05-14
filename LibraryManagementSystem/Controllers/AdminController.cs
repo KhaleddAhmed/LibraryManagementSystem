@@ -28,5 +28,12 @@ namespace LibraryManagementSystem.Controllers
             var result = await _adminService.RejectUserAsync(userId);
             return Ok(result);
         }
+
+        [HttpGet("GetAllUserBorrowings")]
+        public async Task<ActionResult> GetBorrowings()
+        {
+            var result = await _adminService.GetAllBorrowingsAdminAsync();
+            return Ok(result);
+        }
     }
 }
